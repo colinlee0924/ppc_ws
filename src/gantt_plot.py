@@ -7,12 +7,12 @@
 ##--------------------------------------------
 #
 
+import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
 class Gantt:
-    def __init__(self, log = True):
-        self.log = log
+    def __init__(self):
         self.gantt_data = {"MC": [],
                            "Order" : [],
                            "Start time" : [],
@@ -26,10 +26,9 @@ class Gantt:
 
     def draw_gantt(self, save = None):
         #set color list
-        plt.figure(figsize=(30, 10))
-        #colors = list(mcolors.CSS4_COLORS.keys())
+        # plt.figure(figsize=(10, 6))
+        plt.figure()
         colors = list(mcolors.TABLEAU_COLORS.keys())
-        #np.random.shuffle(colors)
         #draw gantt bar
         y = self.gantt_data['MC']
         width = self.gantt_data['Process time']
@@ -44,19 +43,15 @@ class Gantt:
             text_x = self.gantt_data['Start time'][i] + self.gantt_data['Process time'][i]/2
             text_y = self.gantt_data['MC'][i]
             text = self.gantt_data['Order'][i]
-            if len(text) >=10:
-                text = ""
-            plt.text(text_x, text_y, text, verticalalignment='center', horizontalalignment='center', fontsize=20)
+            plt.text(text_x, text_y, 'J'+str(text), verticalalignment='center', horizontalalignment='center', fontsize=8)
         #figure setting
         plt.xlabel("time (hrs)")
-        plt.xticks(np.arange(0,30))
         plt.ylabel("Machine")
         plt.title("Gantt Chart")
-
-        plt.grid(True)
+        # plt.xticks(np.arange(0, 30))
+        # plt.grid(True)
 
         if save == None:
             plt.show()
         else:
             plt.savefig(save)
-        plt.show()
