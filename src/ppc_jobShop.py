@@ -88,10 +88,13 @@ class Machine:
             print("{} : machine {} complete order {} - {} progress".format(T_NOW, self.ID, order.ID, order.progress))
         self.wspace.remove(order)
         self.state = 'idle'
+
         #send the processed order to next place
         if order.progress >= len(order.routing):
-            fac.complete_order(order)
+            #update factory statistic
             fac.throughput += 1
+            #update order statistic
+            fac.update_order_statistic(order)
         else:
             #send the order to next station
             target = order.routing[order.progress]
@@ -169,18 +172,6 @@ class Factory:
             self.machines['B'].end_process_event(self)
         else:
             self.machines['C'].end_process_event(self)
-
-    def update_WIP(self, change):
-        self.WIP_area += self.WIP * (T_NOW - self.WIP_change_time)
-        self.WIP_change_time = T_NOW
-        self.WIP += change
-
-    def complete_order(self, order):
-        #update factory statistic
-        self.throughput += 1
-        self.update_WIP(-1)
-        #update order statistic
-        self.update_order_statistic(order)
 
     def update_order_statistic(self, order):
         ID = order.ID
