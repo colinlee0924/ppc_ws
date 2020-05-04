@@ -150,7 +150,6 @@ class Factory:
         event_type = self.event_lst['time'].astype(float).idxmin()
 
         while T_NOW < stop_time:
-            #compute_statistics()
             self.event(event_type)
             T_LAST = T_NOW
             T_NOW      = self.event_lst.min()["time"]
