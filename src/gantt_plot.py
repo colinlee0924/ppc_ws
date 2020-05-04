@@ -26,8 +26,7 @@ class Gantt:
 
     def draw_gantt(self, save = None):
         #set color list
-        # plt.figure(figsize=(10, 6))
-        plt.figure()
+        plt.figure() # plt.figure(figsize=(12, 6))
         colors = list(mcolors.TABLEAU_COLORS.keys())
         #draw gantt bar
         y = self.gantt_data['MC']
