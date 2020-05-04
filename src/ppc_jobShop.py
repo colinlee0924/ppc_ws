@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-##------ [PPC]  Jobshop Scheduling ----
+##-------- [PPC]  Jobshop Scheduling ---------
 # * Author: Colin, Lee
 # * Date: Apr 30th, 2020
-##-------------------------------------
+# * Description:
+#       Using the event-driven scheuling method
+#       to solve the JSS prob. Here is a sample
+#       code with the style of OOP. Feel free to
+#       modify it as you like.
+##--------------------------------------------
 #
 
 import os
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 from gantt_plot import Gantt
 
 #entity
