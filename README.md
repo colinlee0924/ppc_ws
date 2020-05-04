@@ -1,7 +1,7 @@
 # ppc_ws
 
 ## Description
-Use **event driven scheduling** method to solve the following jobshop scheduling(JSS) problem:
+Use the **event driven scheduling** method to solve the following jobshop scheduling(JSS) problem:
 
 ![](https://github.com/colinlee0924/ppc_ws/blob/master/img/Screen%20Shot%202020-05-04%20at%2011.44.19%20PM.png)
 
