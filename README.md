@@ -17,8 +17,7 @@ matplotlib
 ```
 
 ## Result
-output a gantt chart:
+Output a gantt chart and the result of statistics
 ![](https://github.com/colinlee0924/ppc_ws/blob/master/img/gantt_result.jpg) 
 
-compute the statistic results:
 ![](https://github.com/colinlee0924/ppc_ws/blob/master/img/order_statistic.png)
