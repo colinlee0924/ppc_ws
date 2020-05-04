@@ -18,6 +18,8 @@ matplotlib
 
 ## Result
 Output a gantt chart and the result of statistics:
-![](https://github.com/colinlee0924/ppc_ws/blob/master/img/gantt_result.jpg) 
+<p align="center">
+  <img src="https://github.com/colinlee0924/ppc_ws/blob/master/img/gantt_result.jpg" alt="light bulb icon">
+</p>
 
 ![](https://github.com/colinlee0924/ppc_ws/blob/master/img/order_statistic.png)
