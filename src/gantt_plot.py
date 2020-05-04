@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-##------ [Tool] Gantt chart plotting tool ----
+##------- [Tool] Gantt chart plotting tool --------
 # * Author: CIMLab
-# * Date: Apr 20th, 2020
-##--------------------------------------------
+# * Date: Apr 30th, 2020
+# * Description:
+#       This program is a tool to help you guys
+#       to draw the gantt chart of your scheduling
+#       result. Feel free to modify it as u like.
+##-------------------------------------------------
 #
 
 import numpy as np
