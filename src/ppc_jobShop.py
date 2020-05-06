@@ -48,7 +48,7 @@ class Source:
 
         self.output += 1
         if self.output < order_num:
-            fac.event_lst.loc["Arrival"]["time"] = order_info.loc[self.output, "arrival_time"]
+            fac.event_lst.loc["Arrival"]["time"] = self.order_info.loc[self.output, "arrival_time"]
         else:
             fac.event_lst.loc['Arrival']['time'] = M
 
@@ -66,6 +66,7 @@ class Machine:
         self.DP_rule = DP_rule
 
     def start_processing(self, order):
+        #check state
         if self.state != 'idle':
             self.buffer.append(order)
         else:
@@ -151,13 +152,14 @@ class Factory:
 
     def next_event(self, stop_time):
         global T_NOW, T_LAST
+        T_NOW, T_LAST = M, M
         self.initialize(self.order_info)
         T_NOW      = self.event_lst.min()["time"]
         event_type = self.event_lst['time'].astype(float).idxmin()
 
         while T_NOW < stop_time:
             self.event(event_type)
-            T_LAST = T_NOW
+            T_LAST     = T_NOW
             T_NOW      = self.event_lst.min()["time"]
             event_type = self.event_lst['time'].astype(float).idxmin()
 
@@ -190,6 +192,7 @@ stop_time = 500
 if __name__ == '__main__':
     data_dir = os.getcwd() + "/data/"
     order_info = pd.read_excel(data_dir + "order_information.xlsx")
+    order_info = order_info.sort_values(['arrival_time', 'due_date']).reset_index(drop=True)
     fac = Factory(order_info, 'EDD')
     fac.build()
     fac.next_event(stop_time)
