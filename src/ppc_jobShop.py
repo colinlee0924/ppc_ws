@@ -55,7 +55,10 @@ class Source:
         #send order to correlated station
         target = order.routing[order.progress]
         machine = fac.machines[target]
-        machine.start_processing(order)
+        machine.buffer.append(order)
+        if machine.state == 'idle':
+            fac.event_lst.loc["dispatching"]['time'] = T_NOW
+        # machine.start_processing(order)
 
 class Machine:
     def __init__(self, ID, DP_rule):
@@ -65,23 +68,40 @@ class Machine:
         self.wspace = [] #wspace: working space
         self.DP_rule = DP_rule
 
-    def start_processing(self, order):
+    def start_processing(self):#, fac):
         #check state
-        if self.state != 'idle':
-            self.buffer.append(order)
-        else:
-            self.wspace.append(order)
-            self.state = 'busy'
-            processing_time = order.PT[order.progress]
+        if self.state == 'idle':
+        #get a new order from buffer by DP_rule
+            if len(self.buffer) > 0:
+                if self.DP_rule == "FIFO":
+                    order = self.buffer[0]
+                elif self.DP_rule == "EDD":
+                    idx = np.argmin([j.DD for j in self.buffer])
+                    order = self.buffer[idx]
+                elif self.DP_rule == "SPT":
+                    idx = np.argmin([j.PT[j.progress] for j in self.buffer])
+                    order = self.buffer[idx]
 
-            #[Gantt plot preparing] udate the start/finish processing time of machine
-            fac.gantt_plot.update_gantt(self.ID, T_NOW, processing_time, order.ID)
-            if LOG == True:
-                print("{} : machine {} start processing order {} - {} progress".format(T_NOW, self.ID, order.ID, order.progress))
+                #remove order from buffer
+                self.buffer.remove(order)
+                #start processing the order
 
-            #update the future event list
-            fac.event_lst.loc["{}_complete".format(self.ID)]['time'] = T_NOW + processing_time
-            order.progress += 1
+            # if True:
+                self.wspace.append(order)
+                self.state = 'busy'
+                processing_time = order.PT[order.progress]
+
+                #[Gantt plot preparing] udate the start/finish processing time of machine
+                fac.gantt_plot.update_gantt(self.ID, T_NOW, processing_time, order.ID)
+                if LOG == True:
+                    print("{} : machine {} start processing order {} - {} progress".format(T_NOW, self.ID, order.ID, order.progress))
+
+                #update the future event list
+                fac.event_lst.loc["{}_complete".format(self.ID)]['time'] = T_NOW + processing_time
+                order.progress += 1
+
+            else:
+                fac.event_lst.loc["{}_complete".format(self.ID)]["time"] = M
 
     def end_process_event(self, fac):
         order = self.wspace[0]
@@ -100,26 +120,12 @@ class Machine:
             #send the order to next station
             target = order.routing[order.progress]
             next_machine = fac.machines[target]
-            next_machine.start_processing(order)
+            next_machine.buffer.append(order)
 
-        #get a new order from buffer by DP_rule
-        if len(self.buffer) > 0:
-            if self.DP_rule == "FIFO":
-                order = self.buffer[0]
-            elif self.DP_rule == "EDD":
-                idx = np.argmin([j.DD for j in self.buffer])
-                order = self.buffer[idx]
-            elif self.DP_rule == "SPT":
-                idx = np.argmin([j.PT[j.progress] for j in self.buffer])
-                order = self.buffer[idx]
+        fac.event_lst.loc["{}_complete".format(self.ID)]["time"] = M
 
-            #remove order from buffer
-            self.buffer.remove(order)
-            #start processing the order
-            self.start_processing(order)
-
-        else:
-            fac.event_lst.loc["{}_complete".format(self.ID)]["time"] = M
+        #get new job for self
+        fac.event_lst.loc["dispatching"]['time'] = T_NOW
 
 class Factory:
     def __init__(self, order_info, DP_rule):
@@ -131,9 +137,6 @@ class Factory:
 
         #statistics
         self.throughput = 0
-        self.WIP = 0
-        self.WIP_area = 0
-        self.WIP_change_time = 0
         self.order_statistic = pd.DataFrame(columns = ["ID", "release_time", "complete_time", "due_date", "flow_time", "tardiness", "lateness"])
 
     def build(self):
@@ -148,6 +151,7 @@ class Factory:
         self.event_lst.loc[1] = ["A_complete", M]
         self.event_lst.loc[2] = ["B_complete", M]
         self.event_lst.loc[3] = ["C_complete", M]
+        self.event_lst.loc[4] = ["dispatching", M]
         self.event_lst = self.event_lst.set_index('event_type')
 
     def next_event(self, stop_time):
@@ -158,22 +162,34 @@ class Factory:
         event_type = self.event_lst['time'].astype(float).idxmin()
 
         while T_NOW < stop_time:
+            print()
+            print('T-NOW: ', T_NOW)
+            print(self.event_lst)
+            print()
             self.event(event_type)
             T_LAST     = T_NOW
             T_NOW      = self.event_lst.min()["time"]
             event_type = self.event_lst['time'].astype(float).idxmin()
+            print(event_type)
 
         T_NOW = stop_time
 
     def event(self, event_type):
+        #Arrival event
         if event_type == 'Arrival':
             self.source.arrival_event(self)
+        #Complete event
         elif event_type == 'A_complete':
             self.machines['A'].end_process_event(self)
         elif event_type == 'B_complete':
             self.machines['B'].end_process_event(self)
-        else:
+        elif event_type == 'C_complete':
             self.machines['C'].end_process_event(self)
+        #Dispatch event
+        else:
+            for mc in self.machines.values():
+                mc.start_processing()
+            self.event_lst.loc["dispatching"]['time'] = M
 
     def update_order_statistic(self, order):
         ID = order.ID
@@ -190,11 +206,18 @@ LOG = True
 stop_time = 500
 
 if __name__ == '__main__':
+    #read the input data
     data_dir = os.getcwd() + "/data/"
     order_info = pd.read_excel(data_dir + "order_information.xlsx")
     order_info = order_info.sort_values(['arrival_time', 'due_date']).reset_index(drop=True)
+
+    #build the factory
     fac = Factory(order_info, 'EDD')
     fac.build()
+
+    #start the simulation
     fac.next_event(stop_time)
+
+    #output result
     print(fac.order_statistic)
     fac.gantt_plot.draw_gantt()
