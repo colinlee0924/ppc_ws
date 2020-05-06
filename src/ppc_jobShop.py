@@ -56,9 +56,9 @@ class Source:
         target = order.routing[order.progress]
         machine = fac.machines[target]
         machine.buffer.append(order)
+        #dispatch machines to process the jobs
         if machine.state == 'idle':
             fac.event_lst.loc["dispatching"]['time'] = T_NOW
-        # machine.start_processing(order)
 
 class Machine:
     def __init__(self, ID, DP_rule):
@@ -68,10 +68,10 @@ class Machine:
         self.wspace = [] #wspace: working space
         self.DP_rule = DP_rule
 
-    def start_processing(self):#, fac):
+    def start_processing(self, fac):
         #check state
         if self.state == 'idle':
-        #get a new order from buffer by DP_rule
+            #get a new order from buffer by DP_rule
             if len(self.buffer) > 0:
                 if self.DP_rule == "FIFO":
                     order = self.buffer[0]
@@ -86,7 +86,6 @@ class Machine:
                 self.buffer.remove(order)
                 #start processing the order
 
-            # if True:
                 self.wspace.append(order)
                 self.state = 'busy'
                 processing_time = order.PT[order.progress]
@@ -100,8 +99,7 @@ class Machine:
                 fac.event_lst.loc["{}_complete".format(self.ID)]['time'] = T_NOW + processing_time
                 order.progress += 1
 
-            else:
-                fac.event_lst.loc["{}_complete".format(self.ID)]["time"] = M
+
 
     def end_process_event(self, fac):
         order = self.wspace[0]
@@ -122,10 +120,9 @@ class Machine:
             next_machine = fac.machines[target]
             next_machine.buffer.append(order)
 
-        fac.event_lst.loc["{}_complete".format(self.ID)]["time"] = M
-
-        #get new job for self
+        #wait for the dispatching to get a new job
         fac.event_lst.loc["dispatching"]['time'] = T_NOW
+        fac.event_lst.loc["{}_complete".format(self.ID)]["time"] = M
 
 class Factory:
     def __init__(self, order_info, DP_rule):
@@ -162,15 +159,10 @@ class Factory:
         event_type = self.event_lst['time'].astype(float).idxmin()
 
         while T_NOW < stop_time:
-            print()
-            print('T-NOW: ', T_NOW)
-            print(self.event_lst)
-            print()
             self.event(event_type)
             T_LAST     = T_NOW
             T_NOW      = self.event_lst.min()["time"]
             event_type = self.event_lst['time'].astype(float).idxmin()
-            print(event_type)
 
         T_NOW = stop_time
 
@@ -188,7 +180,7 @@ class Factory:
         #Dispatch event
         else:
             for mc in self.machines.values():
-                mc.start_processing()
+                mc.start_processing(self)
             self.event_lst.loc["dispatching"]['time'] = M
 
     def update_order_statistic(self, order):
