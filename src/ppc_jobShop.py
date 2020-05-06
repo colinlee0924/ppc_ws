@@ -21,10 +21,10 @@ from gantt_plot import Gantt
 class Order:
     def __init__(self, ID, AT, DD, routing, PT):
         self.ID   = ID
-        self.AT    = AT      #AT: arrival time
-        self.DD    = DD      #DD: due date
+        self.AT    = AT         #AT: arrival time
+        self.DD    = DD         #DD: due date
 
-        self.PT       = PT
+        self.PT       = PT      #PT: processing time
         self.routing  = routing
         self.progress = 0
 
@@ -36,7 +36,8 @@ class Source:
 
     def arrival_event(self, fac):
         order_num = self.order_info.shape[0] #num of total orders
-        #generate order
+
+        #generate and release the order
         ID      = self.order_info.loc[self.output, "ID"]
         routing = self.order_info.loc[self.output, "routing"].split(',')
         PT      = [int(i) for i in self.order_info.loc[self.output, "process_time"].split(',')]
@@ -47,6 +48,8 @@ class Source:
             print("{} : order {} release.".format(T_NOW, order.ID))
 
         self.output += 1
+
+        #update the future event list - next order arrival event
         if self.output < order_num:
             fac.event_lst.loc["Arrival"]["time"] = self.order_info.loc[self.output, "arrival_time"]
         else:
@@ -56,7 +59,8 @@ class Source:
         target = order.routing[order.progress]
         machine = fac.machines[target]
         machine.buffer.append(order)
-        #dispatch machines to process the jobs
+
+        #update the future event list - dispatch machines to process the jobs
         if machine.state == 'idle':
             fac.event_lst.loc["dispatching"]['time'] = T_NOW
 
@@ -84,8 +88,8 @@ class Machine:
 
                 #remove order from buffer
                 self.buffer.remove(order)
-                #start processing the order
 
+                #start processing the order
                 self.wspace.append(order)
                 self.state = 'busy'
                 processing_time = order.PT[order.progress]
@@ -95,11 +99,9 @@ class Machine:
                 if LOG == True:
                     print("{} : machine {} start processing order {} - {} progress".format(T_NOW, self.ID, order.ID, order.progress))
 
-                #update the future event list
+                #update the future event list - job complete event
                 fac.event_lst.loc["{}_complete".format(self.ID)]['time'] = T_NOW + processing_time
                 order.progress += 1
-
-
 
     def end_process_event(self, fac):
         order = self.wspace[0]
@@ -120,7 +122,7 @@ class Machine:
             next_machine = fac.machines[target]
             next_machine.buffer.append(order)
 
-        #wait for the dispatching to get a new job
+        #update the future event list - wait for the dispatching to get a new job
         fac.event_lst.loc["dispatching"]['time'] = T_NOW
         fac.event_lst.loc["{}_complete".format(self.ID)]["time"] = M
 
@@ -159,6 +161,10 @@ class Factory:
         event_type = self.event_lst['time'].astype(float).idxmin()
 
         while T_NOW < stop_time:
+            # print()
+            # print('T-NOW: ', T_NOW)
+            # print(self.event_lst)
+            # print()
             self.event(event_type)
             T_LAST     = T_NOW
             T_NOW      = self.event_lst.min()["time"]
@@ -170,6 +176,7 @@ class Factory:
         #Arrival event
         if event_type == 'Arrival':
             self.source.arrival_event(self)
+
         #Complete event
         elif event_type == 'A_complete':
             self.machines['A'].end_process_event(self)
@@ -177,6 +184,7 @@ class Factory:
             self.machines['B'].end_process_event(self)
         elif event_type == 'C_complete':
             self.machines['C'].end_process_event(self)
+
         #Dispatch event
         else:
             for mc in self.machines.values():
@@ -198,13 +206,17 @@ LOG = True
 stop_time = 500
 
 if __name__ == '__main__':
-    #read the input data
+    #read the input data sheet
     data_dir = os.getcwd() + "/data/"
     order_info = pd.read_excel(data_dir + "order_information.xlsx")
-    order_info = order_info.sort_values(['arrival_time', 'due_date']).reset_index(drop=True)
+
+    #data preprocessing
+    order_info = order_info.sort_values(['arrival_time']).reset_index(drop=True)
+
+    DP_rule = 'SPT' #'EDD'
 
     #build the factory
-    fac = Factory(order_info, 'EDD')
+    fac = Factory(order_info, DP_rule)
     fac.build()
 
     #start the simulation
