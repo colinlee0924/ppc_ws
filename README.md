@@ -24,9 +24,9 @@ Output a gantt chart and the result of statistics:
 
 ![](https://github.com/colinlee0924/ppc_ws/blob/master/img/order_statistic.png)
 
-
+## Some supplement
 <details>
-  <summary>***Some supplement(reference)***</summary>
+  <summary>Reference</summary>
 
 ### python
 ### pandas - DataFrame
