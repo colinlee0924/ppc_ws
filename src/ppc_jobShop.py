@@ -132,6 +132,7 @@ class Factory:
     def __init__(self, order_info, DP_rule):
         self.order_info = order_info
         self.DP_rule    = DP_rule
+        self.event_lst = pd.DataFrame(columns=["event_type", "time"])
 
         #[Plug in] tool of gantt plotting
         self.gantt_plot = Gantt()
@@ -150,7 +151,6 @@ class Factory:
                          'C': Machine('C', self.DP_rule)}
 
     def initialize(self, order_info):
-        self.event_lst = pd.DataFrame(columns=["event_type", "time"])
         self.event_lst.loc[0] = ["Arrival", order_info.loc[0, "arrival_time"]]
         self.event_lst.loc[1] = ["A_complete",  infinity]
         self.event_lst.loc[2] = ["B_complete",  infinity]
