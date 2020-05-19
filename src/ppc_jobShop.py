@@ -172,6 +172,7 @@ class Factory:
             event_type = self.event_lst['time'].astype(float).idxmin()
 
         T_NOW = stop_time
+        self.makespan = T_LAST
 
     def event(self, event_type):
         #Arrival event
@@ -225,4 +226,5 @@ if __name__ == '__main__':
 
     #output result
     print(fac.order_statistic)
+    print("Makespan = ", fac.makespan)
     fac.gantt_plot.draw_gantt()
