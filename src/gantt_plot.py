@@ -51,7 +51,7 @@ class Gantt:
         plt.xlabel("time (hrs)")
         plt.ylabel("Machine")
         plt.title("Gantt Chart")
-        # plt.xticks(np.arange(0, 30))
+        # plt.xticks(np.arange(0, self.env.now+1, 1))
         # plt.grid(True)
 
         if save == None:
