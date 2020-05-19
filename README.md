@@ -26,7 +26,7 @@ Output a gantt chart and the result of statistics:
 
 ## Some supplement
 <details>
-  <summary>Reference</summary>
+  <summary>Reference(click me)</summary>
 
 ### python
 ### pandas - DataFrame
