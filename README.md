@@ -24,7 +24,9 @@ Output a gantt chart and the result of statistics:
 
 ![](https://github.com/colinlee0924/ppc_ws/blob/master/img/order_statistic.png)
 
-:::spoiler ***Some supplement(reference)***
+
+<details>
+  <summary>***Some supplement(reference)***</summary>
 
 ### python
 ### pandas - DataFrame
@@ -39,4 +41,5 @@ Output a gantt chart and the result of statistics:
 
 ### matplotlib
 + [甘特圖 - Bar chart](https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.bar.html)
-:::
+
+</details>
