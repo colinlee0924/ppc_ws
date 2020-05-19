@@ -17,6 +17,8 @@ import numpy as np
 import pandas as pd
 from gantt_plot import Gantt
 
+infinity = float('inf')
+
 #entity
 class Order:
     def __init__(self, ID, AT, DD, routing, PT):
@@ -53,7 +55,7 @@ class Source:
         if self.output < order_num:
             fac.event_lst.loc["Arrival"]["time"] = self.order_info.loc[self.output, "arrival_time"]
         else:
-            fac.event_lst.loc['Arrival']['time'] = M
+            fac.event_lst.loc['Arrival']['time'] = infinity
 
         #send order to correlated station
         target = order.routing[order.progress]
@@ -124,7 +126,7 @@ class Machine:
 
         #update the future event list - wait for the dispatching to get a new job
         fac.event_lst.loc["dispatching"]['time'] = T_NOW
-        fac.event_lst.loc["{}_complete".format(self.ID)]["time"] = M
+        fac.event_lst.loc["{}_complete".format(self.ID)]["time"] = infinity
 
 class Factory:
     def __init__(self, order_info, DP_rule):
@@ -138,7 +140,10 @@ class Factory:
         self.throughput = 0
         self.order_statistic = pd.DataFrame(columns = ["ID", "release_time", "complete_time", "due_date", "flow_time", "tardiness", "lateness"])
 
-    def build(self):
+        #build ur custom factory
+        self.__build__()
+
+    def __build__(self):
         self.source   = Source(self.order_info)
         self.machines = {'A': Machine('A', self.DP_rule),
                          'B': Machine('B', self.DP_rule),
@@ -147,15 +152,15 @@ class Factory:
     def initialize(self, order_info):
         self.event_lst = pd.DataFrame(columns=["event_type", "time"])
         self.event_lst.loc[0] = ["Arrival", order_info.loc[0, "arrival_time"]]
-        self.event_lst.loc[1] = ["A_complete", M]
-        self.event_lst.loc[2] = ["B_complete", M]
-        self.event_lst.loc[3] = ["C_complete", M]
-        self.event_lst.loc[4] = ["dispatching", M]
+        self.event_lst.loc[1] = ["A_complete",  infinity]
+        self.event_lst.loc[2] = ["B_complete",  infinity]
+        self.event_lst.loc[3] = ["C_complete",  infinity]
+        self.event_lst.loc[4] = ["dispatching", infinity]
         self.event_lst = self.event_lst.set_index('event_type')
 
     def next_event(self, stop_time):
         global T_NOW, T_LAST
-        T_NOW, T_LAST = M, M
+        T_NOW, T_LAST = infinity, infinity
         self.initialize(self.order_info)
         T_NOW      = self.event_lst.min()["time"]
         event_type = self.event_lst['time'].astype(float).idxmin()
@@ -189,7 +194,7 @@ class Factory:
         else:
             for mc in self.machines.values():
                 mc.start_processing(self)
-            self.event_lst.loc["dispatching"]['time'] = M
+            self.event_lst.loc["dispatching"]['time'] = infinity
 
     def update_order_statistic(self, order):
         ID = order.ID
@@ -201,7 +206,7 @@ class Factory:
         tardiness = max(0, lateness)
         self.order_statistic.loc[ID] = [ID, AT, complete_time, DD, flow_time, tardiness, lateness]
 
-M = 100000000000
+
 LOG = True
 stop_time = 500
 
@@ -213,11 +218,11 @@ if __name__ == '__main__':
     #data preprocessing
     order_info = order_info.sort_values(['arrival_time']).reset_index(drop=True)
 
-    DP_rule = 'SPT' #'EDD'
+    #choose the dispatching policy u'd like
+    DP_rule = 'EDD' # 'SPT' #
 
     #build the factory
     fac = Factory(order_info, DP_rule)
-    fac.build()
 
     #start the simulation
     fac.next_event(stop_time)
