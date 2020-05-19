@@ -204,7 +204,7 @@ class Factory:
         self.order_statistic.loc[ID] = [ID, AT, complete_time, DD, flow_time, tardiness, lateness]
 
 
-LOG = True
+LOG = False #True
 stop_time = 500
 
 if __name__ == '__main__':
@@ -225,6 +225,6 @@ if __name__ == '__main__':
     fac.next_event(stop_time)
 
     #output result
-    print(fac.order_statistic)
+    print(fac.order_statistic.sort_values(["ID"]))
     print("Makespan = ", fac.makespan)
     fac.gantt_plot.draw_gantt()
