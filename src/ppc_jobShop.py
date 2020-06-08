@@ -166,6 +166,9 @@ class Factory:
         event_type = self.event_lst['time'].astype(float).idxmin()
 
         while T_NOW < stop_time:
+            # print()
+            # print(self.event_lst)
+            # print()
             self.event(event_type)
             T_LAST     = T_NOW
             T_NOW      = self.event_lst.min()["time"]
@@ -204,7 +207,7 @@ class Factory:
         self.order_statistic.loc[ID] = [ID, AT, complete_time, DD, flow_time, tardiness, lateness]
 
 
-LOG = False #True
+LOG = True
 stop_time = 500
 
 if __name__ == '__main__':
