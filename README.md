@@ -28,7 +28,7 @@ Output a gantt chart and the result of statistics:
 <details>
   <summary>Reference(click me)</summary>
 
-### NTHU IEEM3040
+### [NTHU IEEM3040](https://elearn.nthu.edu.tw/course/view.php?id=11820)
   
 ### python
 ### pandas - DataFrame
