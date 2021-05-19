@@ -28,6 +28,8 @@ Output a gantt chart and the result of statistics:
 <details>
   <summary>Reference(click me)</summary>
 
+### NTHU IEEM3040
+  
 ### python
 ### pandas - DataFrame
 + [Pandas索引的運用](https://ithelp.ithome.com.tw/articles/10194006)
